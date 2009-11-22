@@ -91,7 +91,7 @@ foreach ($data as $line_no => &$line_val) {
 	$sku = preg_split ('/\s+/', trim ($line_val)); // regex is not most efficient.
 	                                               // but explode() does not support arbitary whitespace.
 	                                               // this could maybe be slightly improved with a custom function
-	if (sizeof ($sku) == 3) { // newlines after SKU lines were not specified, so we play safe
+	if (sizeof ($sku) == 3) { // newlines after the last SKU line is not specified, so we play safe
 		$skus[$line_no] = $sku;
 	}
 }

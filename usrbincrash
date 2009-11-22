@@ -44,11 +44,11 @@ function gcd($a, $b) {
 function lowest_cost ($min_weight) {
 	global $skus;
 	global $biggest;
-	if($min_weight == 0) {
+	if ($min_weight == 0) {
 		return 0;
 	}
 	$table = array(); // holds the solution for all relevant min_weight subproblems
-	for($w = 1; $w != $min_weight +1; $w++) {
+	for ($w = 1; $w != $min_weight +1; $w++) {
 		foreach ($skus as $sku) {
 			$cost = $sku[2];
 			if ($sku[1] < $w) {

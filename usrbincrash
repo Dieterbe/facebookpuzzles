@@ -1,0 +1,124 @@
+#!/usr/bin/php
+<?php
+/*
+ * this script provides a solution for the "Usr Bin Crash" problem described at 
+ * http://www.facebook.com/careers/puzzles.php?puzzle_id=2
+ * the algorithm follows a dynamic programming approach.
+ * It is O(nW) where n = number of items, W = needed weight (pseudopolynomial)
+ * according to http://books.google.be/books?id=u5DB7gck08YC&printsec=frontcover&hl=en&source=gbs_v2_summary_r&cad=0#v=onepage&q=&f=false
+ * there seems to be no algorithm to get optimal solutions faster then 
+ * pseudopolynomial (for unbounded knapsack problems, which are very similar).
+ * It could also be optimally solved using a branch and bound technique, but
+ * whether that would be better seems mostly dependent on 
+ * the characteristics of the input set.
+ * I am convinced that certain parts can be further improved (see comments),
+ * but this should be a good start
+ * Dieter Plaetinck <dieter@plaetinck.be>
+ */
+
+/*
+ * bail out with an error message
+ */
+function terminate ($str, $exitcode = 2) {
+	echo ($str . "\n");
+	exit ($exitcode);
+}
+
+/*
+ * gcd function (for positive integers only), uses Euclid's algo 
+ * (see http://en.wikipedia.org/wiki/Greatest_common_divisor)
+ * if we'd have the GMP module I'd probably use gmp_gcd() instead
+ */
+function gcd($a, $b) {
+	do {
+		$rest = $a % $b;
+		$a = $b;
+		$b = $rest;
+	} while ($rest != 0);
+	return $a;
+}
+
+/*
+ * find the lowest cost for a specified minimal weight to throw away
+ */
+function lowest_cost ($min_weight) {
+	global $skus;
+	if($min_weight == 0) {
+		return 0;
+	}
+	$table = array(); // holds the solution for all relevant min_weight subproblems
+	$biggest = 0;     // we could have calculated this in the GCD optim step,
+	                  // to save some cpu time at the cost readability
+	foreach ($skus as $sku) {
+		if ($sku[1] > $biggest) {
+			$biggest = $sku[1];
+		}
+	}
+	for($w = 1; $w != $min_weight +1; $w++) {
+		foreach ($skus as $sku) {
+			$cost = $sku[2];
+			if ($sku[1] < $w) {
+				$cost += $table[$w - $sku[1] ];
+			}
+			if (!isset ($table[$w]) || $cost < $table[$w]) {
+				$table[$w]  = $cost;
+			}
+		}
+		// as we don't need "old" entries during processing (key < $w - biggest-weight)
+		// we only keep the recent entries to use less memory at the expense of a bit more cpu/time ( O(W))
+		// this is a necessary fix for some of the bigger input files
+		// note that memory is not always freed immediately + different php versions = different GC behaviors
+		if ($w - $biggest > 0) {
+			unset ($table[$w - $biggest]);
+		}
+	}
+	return $table[$min_weight];
+}
+
+// start processing
+
+if ($argc != 2) {
+	terminate ("usage: " . $argv[0] . " <filename>");
+}
+$data = file ($argv[1]);
+if ($data === FALSE) {
+	terminate ("could not read input file " . $argv[1]);
+}
+
+// we are guaranteed the input file is correct, so no need to do much checking
+
+$min_weight = (int) array_shift($data); // min amount in pounds to throw away
+$skus = array ();                       // holds all SKU's.  value = array (label, weight (pounds), cost (dollars))
+$min_cost = null;                       // min value of items to throw away (in dollars) (i.e. solution to problem)
+
+foreach ($data as $line_no => &$line_val) {
+	$sku = preg_split ('/\s+/', trim ($line_val)); // regex is not most efficient.
+	                                               // but explode() does not support arbitary whitespace.
+	                                               // this could maybe be slightly improved with a custom function
+	if (sizeof ($sku) == 3) { // newlines after SKU lines were not specified, so we play safe
+		$skus[$line_no] = $sku;
+	}
+}
+unset ($data);
+
+// it could be worth it to prune away some SKU's that would not need to be picked:
+// i'm thinking of: 
+// SKU's for which alternatives exist a (complete) fraction of the size and a <= value/size ratio
+// SKUS which have alternatives of the same size, but cheaper
+// but this seems to require quite some complexity and whether it's worth it depends on inputfile
+
+// perform GCD optimalisation
+if ($skus) {
+	$gcd = gcd ($min_weight, $skus[0][1]);
+	for ($i = 1; $i != sizeof ($skus); $i++) {
+		$gcd = gcd ($gcd, $skus[$i][1]);
+	}
+	for ($i = 0; $i != sizeof ($skus); $i++) {
+		$skus[$i][1] = $skus[$i][1] / $gcd;
+	}
+	$min_weight = $min_weight / $gcd;
+}
+
+$min_cost = lowest_cost ($min_weight);
+echo ($min_cost . "\n");
+?>

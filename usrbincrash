@@ -52,7 +52,7 @@ function lowest_cost ($min_weight) {
 		foreach ($skus as $sku) {
 			$cost = $sku[2];
 			if ($sku[1] < $w) {
-				$cost += $table[$w - $sku[1] ];
+				$cost += $table[$w - $sku[1]];
 			}
 			if (!isset ($table[$w]) || $cost < $table[$w]) {
 				$table[$w]  = $cost;

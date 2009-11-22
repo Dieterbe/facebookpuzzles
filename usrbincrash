@@ -84,6 +84,8 @@ if ($data === FALSE) {
 $min_weight = (int) array_shift($data); // min amount in pounds to throw away
 $skus = array ();                       // holds all SKU's.  value = array (label, weight (pounds), cost (dollars))
 $min_cost = null;                       // min value of items to throw away (in dollars) (i.e. solution to problem)
+$biggest = 0;                           // will contain biggest weight (*after* GCD optim is applied!)
+$gcd = null;                            // will hold GCD of all SKU's and target weight
 
 foreach ($data as $line_no => &$line_val) {
 	$sku = preg_split ('/\s+/', trim ($line_val)); // regex is not most efficient.
@@ -94,6 +96,9 @@ foreach ($data as $line_no => &$line_val) {
 	}
 }
 unset ($data);
+if (!$skus) {
+	terminate ("No SKU's?");
+}
 
 // it could be worth it to prune away some SKU's that would not need to be picked:
 // i'm thinking of: 
@@ -102,20 +107,17 @@ unset ($data);
 // but this seems to require quite some complexity and whether it's worth it depends on inputfile
 
 // perform GCD optimalisation
-$biggest = 0;
-if ($skus) {
-	$gcd = gcd ($min_weight, $skus[0][1]);
-	for ($i = 1; $i != sizeof ($skus); $i++) {
-		$gcd = gcd ($gcd, $skus[$i][1]);
-	}
-	for ($i = 0; $i != sizeof ($skus); $i++) {
-		$skus[$i][1] = $skus[$i][1] / $gcd;
-		if($skus[$i][1] > $biggest) {
-			$biggest = $skus[$i][1];
-		}
-	}
-	$min_weight = $min_weight / $gcd;
+$gcd = gcd ($min_weight, $skus[0][1]);
+for ($i = 1; $i != sizeof ($skus); $i++) {
+	$gcd = gcd ($gcd, $skus[$i][1]);
 }
+for ($i = 0; $i != sizeof ($skus); $i++) {
+	$skus[$i][1] = $skus[$i][1] / $gcd;
+	if($skus[$i][1] > $biggest) {
+		$biggest = $skus[$i][1];
+	}
+}
+$min_weight = $min_weight / $gcd;
 
 $min_cost = lowest_cost ($min_weight);
 echo ($min_cost . "\n");

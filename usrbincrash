@@ -107,8 +107,7 @@ if (!$skus) {
 // but this seems to require quite some complexity and whether it's worth it depends on inputfile
 
 // perform GCD optimalisation
-$gcd = gcd ($min_weight, $skus[0][1]);
-for ($i = 1; $i != sizeof ($skus); $i++) {
+for ($i = 0, $gcd = $min_weight; $i != sizeof ($skus); $i++) {
 	$gcd = gcd ($gcd, $skus[$i][1]);
 }
 for ($i = 0; $i != sizeof ($skus); $i++) {

@@ -48,7 +48,7 @@ function lowest_cost ($min_weight) {
 	}
 	$table = array(); // holds the solution for all relevant min_weight subproblems
 	$biggest = 0;     // we could have calculated this in the GCD optim step,
-	                  // to save some cpu time at the cost readability
+	                  // to save some cpu time at the cost of readability
 	foreach ($skus as $sku) {
 		if ($sku[1] > $biggest) {
 			$biggest = $sku[1];

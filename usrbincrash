@@ -55,7 +55,7 @@ function lowest_cost ($min_weight) {
 				$cost += $table[$w - $sku[1]];
 			}
 			if (!isset ($table[$w]) || $cost < $table[$w]) {
-				$table[$w]  = $cost;
+				$table[$w] = $cost;
 			}
 		}
 		// as we don't need "old" entries during processing (key < $w - biggest-weight)

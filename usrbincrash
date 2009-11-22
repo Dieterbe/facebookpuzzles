@@ -43,17 +43,11 @@ function gcd($a, $b) {
  */
 function lowest_cost ($min_weight) {
 	global $skus;
+	global $biggest;
 	if($min_weight == 0) {
 		return 0;
 	}
 	$table = array(); // holds the solution for all relevant min_weight subproblems
-	$biggest = 0;     // we could have calculated this in the GCD optim step,
-	                  // to save some cpu time at the cost of readability
-	foreach ($skus as $sku) {
-		if ($sku[1] > $biggest) {
-			$biggest = $sku[1];
-		}
-	}
 	for($w = 1; $w != $min_weight +1; $w++) {
 		foreach ($skus as $sku) {
 			$cost = $sku[2];
@@ -108,6 +102,7 @@ unset ($data);
 // but this seems to require quite some complexity and whether it's worth it depends on inputfile
 
 // perform GCD optimalisation
+$biggest = 0;
 if ($skus) {
 	$gcd = gcd ($min_weight, $skus[0][1]);
 	for ($i = 1; $i != sizeof ($skus); $i++) {
@@ -115,6 +110,9 @@ if ($skus) {
 	}
 	for ($i = 0; $i != sizeof ($skus); $i++) {
 		$skus[$i][1] = $skus[$i][1] / $gcd;
+		if($skus[$i][1] > $biggest) {
+			$biggest = $skus[$i][1];
+		}
 	}
 	$min_weight = $min_weight / $gcd;
 }

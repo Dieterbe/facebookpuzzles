@@ -1,0 +1,11 @@
+#!/bin/bash
+dir=`dirname $0`
+
+files=`ls $dir/datafiles`
+for i in $files
+do
+	log=$dir/$i.log
+	# sigh why doesn't time's output go to the file..
+	time $dir/usrbincrash $dir/datafiles/$i >> $log 2>&1
+	echo $? >> $log
+done

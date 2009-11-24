@@ -104,19 +104,23 @@ if (!$skus) {
 // prune away some SKU's that don't need to be picked. i.e. which we will/can always keep because they are so valueable and light:
 // SKUS which have alternatives of the same size or bigger, and which are equally or less expensive (O(n^2))
 // SKU's for which alternatives exist a (complete) fraction of the size and a <= value/size ratio (O(n^2))
-
-for ($i = 0; $i != sizeof ($skus); $i++) {
-	for ($j = 0; $j != sizeof ($skus); $j++) {
+$new_skus = array ();
+for ($i = 0; $i < sizeof ($skus); $i++) {
+	for ($j = 0; $j < sizeof ($skus); $j++) {
 		// $skus[$j] is the "alternative"
-		if($skus[$j] && $skus[$i]) { //one of them might be unset already
+		if($j != $i && isset($skus[$j]) && isset($skus[$i])) { //one of them might be unset already
 			if($skus[$j][1] >= $skus[$i][1] && $skus[$j][2] <= $skus[$i][2]) {
 				unset ($skus[$i]);
-			} elseif ($skus[$i][1] % $skus[$j][1] = 0 && $skus[$j][3] <= $skus[$i][3]) {
+			} elseif ($skus[$i][1] % $skus[$j][1] == 0 && $skus[$j][3] <= $skus[$i][3]) {
 				unset ($skus[$i]);
 			}
 		}
 	}
+	if (isset($skus[$i])) {
+		$new_skus[] = $skus[$i];
+	}
 }
+$skus = $new_skus;
 
 // perform GCD optimalisation
 for ($i = 0, $gcd = $min_weight; $i != sizeof ($skus); $i++) {

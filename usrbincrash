@@ -82,7 +82,7 @@ if ($data === FALSE) {
 // we are guaranteed the input file is correct, so no need to do much checking
 
 $min_weight = (int) array_shift($data); // min amount in pounds to throw away
-$skus = array ();                       // holds all SKU's.  value = array (label, weight (pounds), cost (dollars))
+$skus = array ();                       // holds all SKU's.  value = array (label, weight (pounds), cost (dollars), cost/weight ratio)
 $min_cost = null;                       // min value of items to throw away (in dollars) (i.e. solution to problem)
 $biggest = 0;                           // will contain biggest weight (*after* GCD optim is applied!)
 $gcd = null;                            // will hold GCD of all SKU's and target weight
@@ -92,6 +92,7 @@ foreach ($data as $line_no => &$line_val) {
 	                                               // but explode() does not support arbitary whitespace.
 	                                               // this could maybe be slightly improved with a custom function
 	if (sizeof ($sku) == 3) { // newlines after the last SKU line is not specified, so we play safe
+		$sku[] = $sku[2] / $sku[1];
 		$skus[$line_no] = $sku;
 	}
 }
@@ -100,11 +101,22 @@ if (!$skus) {
 	terminate ("No SKU's?");
 }
 
-// it could be worth it to prune away some SKU's that would not need to be picked:
-// i'm thinking of: 
-// SKU's for which alternatives exist a (complete) fraction of the size and a <= value/size ratio
-// SKUS which have alternatives of the same size, but cheaper
-// but this seems to require quite some complexity and whether it's worth it depends on inputfile
+// prune away some SKU's that don't need to be picked. i.e. which we will/can always keep because they are so valueable and light:
+// SKUS which have alternatives of the same size or bigger, and which are equally or less expensive (O(n^2))
+// SKU's for which alternatives exist a (complete) fraction of the size and a <= value/size ratio (O(n^2))
+
+for ($i = 0; $i != sizeof ($skus); $i++) {
+	for ($j = 0; $j != sizeof ($skus); $j++) {
+		// $skus[$j] is the "alternative"
+		if($skus[$j] && $skus[$i]) { //one of them might be unset already
+			if($skus[$j][1] >= $skus[$i][1] && $skus[$j][2] <= $skus[$i][2]) {
+				unset ($skus[$i]);
+			} elseif ($skus[$i][1] % $skus[$j][1] = 0 && $skus[$j][3] <= $skus[$i][3]) {
+				unset ($skus[$i]);
+			}
+		}
+	}
+}
 
 // perform GCD optimalisation
 for ($i = 0, $gcd = $min_weight; $i != sizeof ($skus); $i++) {

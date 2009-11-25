@@ -104,6 +104,7 @@ if (!$skus) {
 // prune away some SKU's that don't need to be picked. i.e. which we will/can always keep because they are so valueable and light:
 // SKUS which have alternatives of the same size or bigger, and which are equally or less expensive (O(n^2))
 // SKU's for which alternatives exist a (complete) fraction of the size and a <= value/size ratio (O(n^2))
+// this is experimental! it incorrectly prunes SKU's for at least datafiles/usrbincrash-data-gaurav-jain-400011
 $new_skus = array ();
 for ($i = 0; $i < sizeof ($skus); $i++) {
 	for ($j = 0; $j < sizeof ($skus); $j++) {
